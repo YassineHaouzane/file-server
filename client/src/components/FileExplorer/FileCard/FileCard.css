@@ -1,0 +1,11 @@
+.fileCard {
+    flex: 1;
+    border-radius: 10px;
+    min-width: 0px;
+    cursor: pointer;
+    max-width: 200px;
+}
+
+.fileCard:hover {
+    background-color: #383838;
+}

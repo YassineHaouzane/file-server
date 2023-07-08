@@ -1,0 +1,14 @@
+version: '3'
+services:
+  filesharing_server:
+    build: server/
+    container_name: filesharing_server
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING.PROFILES.ACTIVE=default
+  filesharing_client:
+    build: client/
+    container_name: filesharing_client
+    ports:
+      - "80:80"
