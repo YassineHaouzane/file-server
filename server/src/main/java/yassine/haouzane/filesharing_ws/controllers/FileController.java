@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import yassine.haouzane.filesharing_ws.model.FileInfo;
+import yassine.haouzane.filesharing_ws.payload.FileNotFoundException;
 import yassine.haouzane.filesharing_ws.payload.FileStorageException;
 import yassine.haouzane.filesharing_ws.payload.UploadFileResponse;
 import yassine.haouzane.filesharing_ws.services.FileStorageService;
@@ -32,15 +33,13 @@ public class FileController {
 
     @GetMapping
     public ResponseEntity<List<FileInfo>> getFilesData() {
-       return ResponseEntity.ok().body(fileStorageService.getFilesInfo());
+        return ResponseEntity.ok().body(fileStorageService.getFilesInfo());
     }
 
     @GetMapping("/{fileName:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
-        // Load file as Resource
         Resource resource = fileStorageService.loadFileAsResource(fileName);
 
-        // Try to determine file's content type
         String contentType = null;
         try {
             contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
@@ -48,7 +47,6 @@ public class FileController {
             logger.info("Could not determine file type.");
         }
 
-        // Fallback to the default content type if type could not be determined
         if (contentType == null) {
             contentType = "application/octet-stream";
         }
@@ -59,6 +57,27 @@ public class FileController {
                 .body(resource);
     }
 
+    @DeleteMapping("/{fileName:.+}")
+    public ResponseEntity<FileInfo> removeFile(@PathVariable String fileName) {
+        try {
+            Optional<FileInfo> info = fileStorageService.removeFile(fileName);
+            return info.map(fileInfo -> ResponseEntity.ok()
+                    .body(fileInfo)).orElseGet(() -> ResponseEntity.internalServerError().build());
+        } catch (FileNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/{fileName:.+}")
+    public ResponseEntity<FileInfo> renameFile(@PathVariable String fileName, @RequestBody FileInfo fileInfo) {
+        try {
+            Optional<FileInfo> info_o = fileStorageService.renameFile(fileName, fileInfo.getName());
+            return info_o.map(info -> ResponseEntity.ok().body(info))
+                    .orElseGet(() -> ResponseEntity.internalServerError().build());
+        } catch (FileNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
     private Optional<UploadFileResponse> uploadFile(MultipartFile file) {
         try {
@@ -67,7 +86,6 @@ public class FileController {
                     .path("/downloadFile/")
                     .path(fileName)
                     .toUriString();
-
             return Optional.of(new UploadFileResponse(fileName, fileDownloadUri,
                     file.getContentType(), file.getSize()));
         } catch (FileStorageException e) {
@@ -83,5 +101,4 @@ public class FileController {
                 .map(Optional::get)
                 .collect(Collectors.toList());
     }
-
 }
