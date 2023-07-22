@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { fetchFile } from "../../utils/file";
 import { FileUploader } from "react-drag-drop-files";
+import { displayError, displayFormatedError, displaySuccess } from "../../utils/toast_facade";
 
-const fileTypes = ["JPG", "PNG", "GIF"];
+const fileTypes = ["JPG", "PNG", "GIF", "MP4"];
 
 export function Uploader() {
   const [file, setFile] = useState<File | undefined>(undefined);
@@ -12,8 +13,8 @@ export function Uploader() {
 
   const sendFileHandler = () => {
     fetchFile(file!)
-      .then(() => console.log("uploaded"))
-      .catch((err) => console.log(err));
+      .then(() => displaySuccess(`File ${file!.name} has been uploaded`))
+      .catch((err) => displayFormatedError('Could not upload file', err));
   };
 
   return (

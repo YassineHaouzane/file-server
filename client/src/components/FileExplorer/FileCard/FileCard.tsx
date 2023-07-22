@@ -7,6 +7,10 @@ import {
 import FileSvg from "../../../assets/file.svg";
 import "./FileCard.css";
 import { MouseEventHandler, FocusEvent, ChangeEventHandler } from "react";
+import {
+  displayError,
+  displayFormatedError,
+} from "../../../utils/toast_facade";
 
 type Props = {
   fileInfo: FileInfo;
@@ -17,7 +21,7 @@ type Props = {
 const downloadFileHandler = (fileName: string) => () => {
   fetchData(fileName)
     .then((blob) => downloadFile(blob, fileName))
-    .catch((err) => console.log(err));
+    .catch((err) => displayFormatedError("Could not download file", err));
 };
 
 const sendRenameRequest = (
@@ -33,7 +37,7 @@ const sendRenameRequest = (
       })
       .catch((err) => {
         e.target.value = fileInfo.name;
-        console.log(err);
+        displayFormatedError("Could not rename file", err);
       });
   }
 };

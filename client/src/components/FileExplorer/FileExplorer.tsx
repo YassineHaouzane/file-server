@@ -3,12 +3,16 @@ import { FileInfo, fetchFileData, removeFile } from "../../utils/file";
 import { Spinner } from "../Spinner/Spinner";
 import { FileCard } from "./FileCard/FileCard";
 import { Menu } from "./Menu/Menu";
+import { displayFormatedError } from "../../utils/toast_facade";
+
+type ResponseStatus = FileInfo[] | undefined;
+type Coordinates = { x: number; y: number };
 
 const onRemove =
   (
     filesInfo: FileInfo[],
     fileInfo: FileInfo,
-    setFilesInfo: Dispatch<FileInfo[] | undefined>
+    setFilesInfo: Dispatch<ResponseStatus>
   ) =>
   () => {
     removeFile(fileInfo)
@@ -19,14 +23,11 @@ const onRemove =
             )
           : undefined
       )
-      .catch((err) => console.log(err));
+      .catch((err) => displayFormatedError("Could not remove the file", err));
   };
 
 const rightClickHandler =
-  (
-    setClicked: Dispatch<boolean>,
-    setPoints: Dispatch<{ x: number; y: number }>
-  ) =>
+  (setClicked: Dispatch<boolean>, setPoints: Dispatch<Coordinates>) =>
   (e: MouseEvent) => {
     e.preventDefault();
     setClicked(true);
@@ -34,11 +35,10 @@ const rightClickHandler =
       x: e.pageX,
       y: e.pageY,
     });
-    console.log("Right Click", e.pageX, e.pageY);
   };
 
 export function FileExplorer() {
-  const [filesInfo, setFilesInfo] = useState<undefined | FileInfo[]>(undefined);
+  const [filesInfo, setFilesInfo] = useState<ResponseStatus>(undefined);
   const [clicked, setClicked] = useState(false);
   const [points, setPoints] = useState({
     x: 0,
@@ -57,8 +57,10 @@ export function FileExplorer() {
   useEffect(() => {
     fetchFileData()
       .then((filesInfo) => setFilesInfo(filesInfo))
-      .catch((err) => console.log(err));
-    setUpListeners();
+      .catch((err) =>
+        displayFormatedError('Cannot fetch file data', err)
+      );
+    return setUpListeners();
   }, []);
 
   return (
@@ -78,8 +80,6 @@ export function FileExplorer() {
                 fileInfo={fileInfo}
                 rightClickHandler={rightClickHandler(setClicked, setPoints)}
                 onEditFinished={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  // This code is so bad
-                  console.log(e.target.value);
                   fileInfo.name = e.target.value;
                   const newFileInfo = [...filesInfo];
                   newFileInfo[newFileInfo.indexOf(fileInfo)] = fileInfo;
