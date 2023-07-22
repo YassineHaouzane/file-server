@@ -7,10 +7,7 @@ import {
 import FileSvg from "../../../assets/file.svg";
 import "./FileCard.css";
 import { MouseEventHandler, FocusEvent, ChangeEventHandler } from "react";
-import {
-  displayError,
-  displayFormatedError,
-} from "../../../utils/toast_facade";
+import { displayFormatedError } from "../../../utils/toast_facade";
 
 type Props = {
   fileInfo: FileInfo;
