@@ -1,8 +1,8 @@
 # File server
 
-This project contains a simple file server for to share files accross multiple devices.
+This project contains a simple file server to share files accross multiple devices.
 
-To run the project under docker run the following command:
+## Run the project
 
 ```sh
 docker compose up
