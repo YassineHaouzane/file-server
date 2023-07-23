@@ -1,10 +1,19 @@
 export type FileInfo = {
     name: string,
-    filesize: number
+    size: number
 }
 
-export async function fetchData(fileName: string) {
-    const response = await fetch(`/file/${fileName}`);
+export type HyperLink = {
+    rel: string,
+    href: string
+}
+
+export type FileInfoResponse = FileInfo & {
+    links: HyperLink[]
+}
+
+export async function fetchData(selfHyperLink: string) {
+    const response = await fetch(selfHyperLink);
     const blob = await response.blob();
     return new Blob([blob]);
 }
@@ -31,14 +40,14 @@ export async function removeFile(file: FileInfo) {
     return content !== undefined;
 }
 
-export async function renameFile(file: FileInfo, newName: string) {
+export async function renameFile(selfHyperLink: HyperLink, newName: string) {
     const newFileInfo = { name: newName } as FileInfo;
-    const response = await fetch(`/file/${file.name}`, {
+    const response = await fetch(selfHyperLink.href, {
         method: "PATCH", headers: {
             "Content-Type": "application/json",
         }, body: JSON.stringify(newFileInfo)
     });
-    const content = await response.json() as FileInfo;
+    const content = await response.json() as FileInfoResponse[];
     return content !== undefined;
 }
 
@@ -46,6 +55,6 @@ export async function renameFile(file: FileInfo, newName: string) {
 
 export async function fetchFileData() {
     const response = await fetch('/file');
-    const body = (await response.json()) as FileInfo[];
+    const body = (await response.json()) as FileInfoResponse[];
     return body
 }

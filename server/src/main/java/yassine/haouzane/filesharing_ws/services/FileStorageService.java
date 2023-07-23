@@ -69,14 +69,14 @@ public class FileStorageService {
         try {
             Resource resource = this.loadFileAsResource(fileName);
             File f = resource.getFile();
-            FileInfo info = new FileInfo(f.getName(), f.getTotalSpace());
+            FileInfo info = new FileInfo(f.getName(), f.length(), FileInfo.getFileExtension(f));
             if (f.delete()) {
                 return Optional.of(info);
             } else {
                 return Optional.empty();
             }
         } catch (IOException e) {
-            throw new FileNotFoundException("File couldn't be loaded for reaseon", e);
+            throw new FileNotFoundException("File couldn't be loaded for reason", e);
         }
     }
 
@@ -87,7 +87,7 @@ public class FileStorageService {
             Path filePath = this.fileStorageLocation.resolve(newName).normalize();
             File newFile = new File(filePath.toUri());
             if (f.renameTo(newFile)) {
-                FileInfo info = new FileInfo(newFile.getName(), newFile.getTotalSpace());
+                FileInfo info = new FileInfo(newFile.getName(), newFile.getTotalSpace(), FileInfo.getFileExtension(newFile));
                 return Optional.of(info);
             } else {
                 return Optional.empty();
@@ -115,7 +115,7 @@ public class FileStorageService {
         File directoryPath = new File("./uploads");
         File[] filesList = directoryPath.listFiles();
         assert filesList != null;
-        return Arrays.stream(filesList).map(f -> new FileInfo(f.getName(), f.length())).toList();
+        return Arrays.stream(filesList).map(f -> new FileInfo(f.getName(), f.length(), FileInfo.getFileExtension(f))).toList();
     }
 
 }

@@ -1,16 +1,21 @@
 import { Dispatch, Fragment, MouseEvent, useEffect, useState } from "react";
-import { FileInfo, fetchFileData, removeFile } from "../../utils/file";
+import {
+  FileInfo,
+  FileInfoResponse,
+  fetchFileData,
+  removeFile,
+} from "../../utils/file";
 import { Spinner } from "../Spinner/Spinner";
 import { FileCard } from "./FileCard/FileCard";
 import { Menu } from "./Menu/Menu";
 import { displayFormatedError } from "../../utils/toast_facade";
 
-type ResponseStatus = FileInfo[] | undefined;
+type ResponseStatus = FileInfoResponse[] | undefined;
 type Coordinates = { x: number; y: number };
 
 const onRemove =
   (
-    filesInfo: FileInfo[],
+    filesInfo: FileInfoResponse[],
     fileInfo: FileInfo,
     setFilesInfo: Dispatch<ResponseStatus>
   ) =>
@@ -27,10 +32,14 @@ const onRemove =
   };
 
 const rightClickHandler =
-  (setClicked: Dispatch<boolean>, setPoints: Dispatch<Coordinates>) =>
+  (
+    fileInfo: FileInfo,
+    setClicked: Dispatch<FileInfo>,
+    setPoints: Dispatch<Coordinates>
+  ) =>
   (e: MouseEvent) => {
     e.preventDefault();
-    setClicked(true);
+    setClicked(fileInfo);
     setPoints({
       x: e.pageX,
       y: e.pageY,
@@ -39,14 +48,14 @@ const rightClickHandler =
 
 export function FileExplorer() {
   const [filesInfo, setFilesInfo] = useState<ResponseStatus>(undefined);
-  const [clicked, setClicked] = useState(false);
+  const [clicked, setClicked] = useState<FileInfo | undefined>(undefined);
   const [points, setPoints] = useState({
     x: 0,
     y: 0,
   });
 
   const setUpListeners = () => {
-    const handleClick = () => setClicked(false);
+    const handleClick = () => setClicked(undefined);
     window.addEventListener("click", handleClick);
     return () => {
       // Clean up the event listener
@@ -57,9 +66,7 @@ export function FileExplorer() {
   useEffect(() => {
     fetchFileData()
       .then((filesInfo) => setFilesInfo(filesInfo))
-      .catch((err) =>
-        displayFormatedError('Cannot fetch file data', err)
-      );
+      .catch((err) => displayFormatedError("Cannot fetch file data", err));
     return setUpListeners();
   }, []);
 
@@ -69,7 +76,7 @@ export function FileExplorer() {
         filesInfo.map((fileInfo) => {
           return (
             <Fragment key={fileInfo.name}>
-              {clicked && (
+              {clicked && clicked.name === fileInfo.name && (
                 <Menu
                   y={points.y}
                   x={points.x}
@@ -78,7 +85,11 @@ export function FileExplorer() {
               )}
               <FileCard
                 fileInfo={fileInfo}
-                rightClickHandler={rightClickHandler(setClicked, setPoints)}
+                rightClickHandler={rightClickHandler(
+                  fileInfo,
+                  setClicked,
+                  setPoints
+                )}
                 onEditFinished={(e: React.ChangeEvent<HTMLInputElement>) => {
                   fileInfo.name = e.target.value;
                   const newFileInfo = [...filesInfo];

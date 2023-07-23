@@ -23,6 +23,9 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok:1.18.28'
 	annotationProcessor 'org.projectlombok:lombok:1.18.28'
 
+
+	implementation 'org.springframework.boot:spring-boot-starter-hateoas:3.0.7'
+
 	testCompileOnly 'org.projectlombok:lombok:1.18.28'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
 }
